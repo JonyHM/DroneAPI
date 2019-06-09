@@ -1,5 +1,4 @@
 {
-   "name": "default",
    "type": "sqlite",
    "database": "database.sqlite",
    "synchronize": false,

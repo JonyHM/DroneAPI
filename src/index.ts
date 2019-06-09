@@ -13,9 +13,63 @@ createConnection().then(async connection => {
     const droneRepository = connection.getRepository(Drone);
 
     app.get('/drones', async (req: express.Request, resp: express.Response) => {
-        await droneRepository.find()
-            .then(drones => resp.send(drones))
-            .catch(err => resp.status(400).send(err.message));
+        let page = req.query._page;
+        let limit = req.query._limit;
+        page > 0 
+            ? page = page 
+            : page = 0;
+        limit > 0 
+            ? limit = limit 
+            : limit = 0;
+        
+        let sort = req.query._sort;
+        let order = req.query._order;
+        let orderId, orderName, orderBattery, orderStatus, orderFly;
+        order 
+            ? order = order.toUpperCase()
+            : order = '';
+        
+        switch(sort) {
+            case 'id':  {
+                orderId = order;
+                break;
+            }
+
+            case 'name':  {
+                orderName = order;
+                break;
+            }
+
+            case 'battery':  {
+                orderBattery = order;
+                break;
+            }
+
+            case 'status':  {
+                orderStatus = order;
+                break;
+            }
+
+            case 'fly':  {
+                orderFly = order;
+                break;
+            }
+
+        }
+
+        await droneRepository.find({
+            order: {
+                id: orderId,
+                customer_name: orderName,
+                battery: orderBattery,
+                status: orderStatus,
+                current_fly: orderFly
+            },
+            skip: page,
+            take: limit
+        })
+        .then(drones => resp.send(drones))
+        .catch(err => resp.status(400).send(err.message));
     });
 
     app.get('/drones/:id', async (req: express.Request, resp: express.Response) => {
@@ -31,9 +85,10 @@ createConnection().then(async connection => {
     });
 
     app.delete('/drones/:id', async (req: express.Request, resp: express.Response) => {
-        let droneARemover = this.droneRepository.findOne(req.params.id)
-            .catch(err => console.log(err.message));
-
+        let droneARemover;        
+        await droneRepository.findOne(req.params.id)
+            .then(drone => droneARemover = drone)
+            .catch(err => resp.status(400).send(err.message));
         await droneRepository.remove(droneARemover)
             .then(() => resp.status(200).send('Drone removido com sucesso!'))
             .catch(err => resp.status(400).send(err.message));
@@ -43,9 +98,9 @@ createConnection().then(async connection => {
         let droneAAtualizar;
         await droneRepository.findOne(req.params.id)
             .then(drone => droneAAtualizar = drone)
-            .catch(err => console.log(err.message));
-        await droneRepository.merge(droneAAtualizar, req.body)
-        
+            .catch(err => resp.status(400).send(err.message));
+        await droneRepository.merge(droneAAtualizar, req.body);
+    
         await droneRepository.save(droneAAtualizar)
             .then(() => resp.status(200).send('Drone atualizado com sucesso!'))
             .catch(err => resp.status(400).send(err.message));

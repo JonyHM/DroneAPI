@@ -3,8 +3,10 @@
    "version": "0.0.1",
    "description": "API RESTful construída com Express, TypeORM e SQLite3",
    "devDependencies": {
-      "ts-node": "3.3.0",
+      "@types/cors": "^2.8.5",
+      "@types/express": "^4.17.0",
       "@types/node": "^8.0.29",
+      "ts-node": "3.3.0",
       "typescript": "3.3.3333"
    },
    "dependencies": {
